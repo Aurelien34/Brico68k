@@ -9,6 +9,9 @@ RAM_END	equ $110000
 BACKUP_RAM_START equ $d00000
 BACKUP_RAM_END equ $d10000
 
+PALETTE_RAM_START equ $400000
+PALETTE_RAM_END equ $402000
+
 ROM_NAME_SECTION_ORG	equ $100
 INITIAL_PC_ORG          equ $402
 
@@ -115,4 +118,34 @@ REG_STATUS_B equ $380000
 
 	macro DisableInterrupts
 		move #$2700,sr				; Supervisor mode + all interrupts disabled
+	endm
+
+	macro Nop2
+		nop
+		nop
+	endm
+
+	macro Nop4
+		Nop2
+		Nop2
+	endm
+
+	macro Nop6
+		Nop2
+		Nop4
+	endm
+
+	macro Nop8
+		Nop4
+		Nop4
+	endm
+
+	macro Nop12
+		Nop8
+		Nop4
+	endm
+
+	macro Nop16
+		Nop8
+		Nop8
 	endm
