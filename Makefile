@@ -13,14 +13,6 @@ ASFLAGS=-chklabels -nocase -Fvobj -m68000 -Dvasm=1 -DBuildNEO=1 -Iinc -spaces #-
 LDFLAGS=-brawbin1 -T$(TARGET).ld
 OBJPATH = obj
 OBJ = $(patsubst %.s,$(OBJPATH)/%.o,$(wildcard *.s))
-#OBJ = 	\
-#			$(OBJPATH)/Brico68k.o \
-#			$(OBJPATH)/ExtEcho.o\
-#			$(OBJPATH)/ExtTestBWRAM.o\
-#			$(OBJPATH)/ExtMemDump.o\
-#			$(OBJPATH)/ExtTestInputs.o\
-#			$(OBJPATH)/ExtWrite.o\
-#	Empty line here to make object insertions easy
 INCS = inc/define.inc
 OUTPUT_DIR = rom
 PRECOMPPATH = precomp
