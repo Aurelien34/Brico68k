@@ -3,3 +3,4 @@ Brico68k.code-workspace
 *.o
 *.txt
 *.bin
+/.vscode

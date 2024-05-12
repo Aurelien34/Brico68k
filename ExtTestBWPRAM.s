@@ -8,21 +8,21 @@
 
 EXT_TEST_WRAM:
 	move.b #0,d7 ; Work test
-	move.l #RAM_START, a6
-	move.l #RAM_END, a5
+	move.l #RAM_START, a5
+	move.l #RAM_END, a4
 	jmp START_TEST
 
 EXT_TEST_BRAM:
 	move.b #1,d7 ; Backup test
-	move.l #BACKUP_RAM_START, a6
-	move.l #BACKUP_RAM_END, a5
+	move.l #BACKUP_RAM_START, a5
+	move.l #BACKUP_RAM_END, a4
 	move.b #$ff, $3A001D; unprotect backup RAM
 	jmp START_TEST
 
 EXT_TEST_PRAM:
 	move.b #2,d7 ; Palette test
-	move.l #PALETTE_RAM_START, a6
-	move.l #PALETTE_RAM_END, a5
+	move.l #PALETTE_RAM_START, a5
+	move.l #PALETTE_RAM_END, a4
 	jmp START_TEST
 
 START_TEST:
@@ -48,22 +48,22 @@ START_TEST:
 
 	; Write all zeroes
     Print "> 0000 Test "
-	move.l a6,a1
+	move.l a5,a1
 .writeZeroesLoop:
 	WatchDog
 	move.w #$0000,(a1)+
-	cmp.l a5,a1
+	cmp.l a4,a1
 	bne .writeZeroesLoop
 	WatchDog
 
 	; Check all zeroes
-	move.l a6,a1
+	move.l a5,a1
 .readZeroesLoop:
 	WatchDog
 	move.w (a1)+,d1
 	cmp.w #$0000,d1
 	bne .reportResultError
-	cmp.l a5,a1
+	cmp.l a4,a1
 	bne .readZeroesLoop
 	WatchDog
 	move.l #.lblTestSuccess,a1
@@ -71,22 +71,22 @@ START_TEST:
 
 	; Write all 5555
     Print "> 5555 Test "
-	move.l a6,a1
+	move.l a5,a1
 .write5555Loop:
 	WatchDog
 	move.w #$5555,(a1)+
-	cmp.l a5,a1
+	cmp.l a4,a1
 	bne .write5555Loop
 	WatchDog
 
 	; Check all 5555
-	move.l a6,a1
+	move.l a5,a1
 .read5555Loop:
 	WatchDog
 	move.w (a1)+,d1
 	cmp.w #$5555,d1
 	bne .reportResultError
-	cmp.l a5,a1
+	cmp.l a4,a1
 	bne .read5555Loop
 	WatchDog
 	move.l #.lblTestSuccess,a1
@@ -94,18 +94,18 @@ START_TEST:
 
 	; Write a1
     Print "> Increment Test "
-	move.l a6,a1
+	move.l a5,a1
 .writea1Loop:
 	WatchDog
 	move.w a1,d1
 	lsr.w d1
 	move.w d1,(a1)+
-	cmp.l a5,a1
+	cmp.l a4,a1
 	bne .writea1Loop
 	WatchDog
 
 	; Check a1
-	move.l a6,a1
+	move.l a5,a1
 .reada1Loop:
 	WatchDog
 	move.w a1,d2
@@ -113,7 +113,7 @@ START_TEST:
 	move.w (a1)+,d1
 	cmp.w d2,d1
 	bne .reportResultError
-	cmp.l a5,a1
+	cmp.l a4,a1
 	bne .reada1loop
 	WatchDog
 	move.l #.lblTestSuccess,a1

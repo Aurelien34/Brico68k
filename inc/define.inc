@@ -11,6 +11,7 @@ BACKUP_RAM_END equ $d10000
 
 PALETTE_RAM_START equ $400000
 PALETTE_RAM_END equ $402000
+PALETTE_BACKDROP equ $401FFE
 
 ROM_NAME_SECTION_ORG	equ $100
 INITIAL_PC_ORG          equ $402
@@ -63,20 +64,27 @@ REG_STATUS_B equ $380000
 		move.w (BRICO_PORT_EOT).l,d0
 	endm
 
-	macro PortWrite
-		move.w \1,d0
-		PortWriteD0
+    macro JsrA6
+		lea (.\@), a6
+		jmp \1_JsrA6
+.\@:
+	endm
+
+	macro RtsA6
+		jmp (a6)
 	endm
 
 	macro PortWriteD0
+		JsrA6 port_write_d0
+	endm
+
+	macro InlinePortWriteD0
 		and.l #$0000ffff,d0				; cleanup high word
 		lsl.l d0						; times 2 (16 bits ROM)
 		add.l #SYSTEM_ROM_MIRROR,d0		; locate in ROM mirror range to trigger the /OE line (under 0x0100, OE will not be triggered on non mirror location)
 		exg d0,a0						; Switch value to address register, as data is read on the address bus!
-		;ori #$0700,sr 					; Disable interrupts
 		move.w (BRICO_PORT_OUT).l,d0	; trigger port write
 		move.w (a0),d0					; write value
-		;andi #$F8FF,sr 				; Enable interrupts
 	endm
 
 	macro Print							; String constant passed as a parameter
@@ -102,12 +110,16 @@ REG_STATUS_B equ $380000
 	.\@PrintEnd:
 	endm
 
-	macro PrintA1			; string address in a1
+	macro PrintA1
+		JsrA6 print_a1
+	endm
+
+	macro InlinePrintA1			; string address in a1
 	.\@lbl0000PrintStart:
 		cmp.b #0,(a1)
 		beq .\@lbl0000PrintEnd
 		move.b (a1)+,d0
-		PortWriteD0
+		InlinePortWriteD0
 		jmp .\@lbl0000PrintStart
 	.\@lbl0000PrintEnd:
 	endm
