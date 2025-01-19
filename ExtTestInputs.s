@@ -78,6 +78,24 @@ EXT_TEST_INPUTS:
 .endShowStartSelect
 	dbra d2, .loopStartSelect
 
+	; CoinsService
+	move.l #.lblCoinsService,a1
+    PrintA1
+	move.b REG_STATUS_A,d1
+	; Loop on data bits
+	move.w #2,d2
+.loopCoinsService:
+	btst d2, d1
+	beq .showCoinsService1
+	move.l #.lbl0, a1
+    PrintA1
+	jmp .endShowCoinsService
+.showCoinsService1
+	move.l #.lbl1, a1
+    PrintA1
+.endShowCoinsService
+	dbra d2, .loopCoinsService
+
 .endOfTest:
     ; End of transmission
     WriteEOT
@@ -91,6 +109,8 @@ EXT_TEST_INPUTS:
 	dc.b 10, 10, "DCBARLDU Player 2 controls (NEO-C1)", 10, 0
 .lblStartSelect:
 	dc.b 10, 10, "P2 Select, P2 Start, P1 Select, P1 Start (NEO-C1)", 10, 0
+.lblCoinsService:
+	dc.b 10, 10, "P1 Coin-in, P2 Coin-in, Service button (NEO-F0)", 10, 0
 .lbl0;
 	dc.b "0", 0
 .lbl1;

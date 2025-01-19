@@ -60,7 +60,9 @@
 	dc.b "BricoNeo"
 	; Version - 4 bytes
 	BRICONEO_VERSION 1,3
-	dc.w $0000	; Reserved
+	; Special modes
+	dc.w BRICO_SPECIAL_FLAG_ENABLE_EXTENSIONS + BRICO_SPECIAL_FLAG_68K_SENDS_COMMANDS
+
 JUMP_TO_COMMAND:
 	dc.w $4ef9 ; jmp opcode, in order to jump directly to the following address
 BRICO_COMMAND_IN:

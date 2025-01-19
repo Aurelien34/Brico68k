@@ -13,6 +13,9 @@ PALETTE_RAM_START equ $400000
 PALETTE_RAM_END equ $402000
 PALETTE_BACKDROP equ $401FFE
 
+REG_PALBANK0 equ $3A001F
+REG_PALBANK1 equ $3A000F
+
 ROM_NAME_SECTION_ORG	equ $100
 INITIAL_PC_ORG          equ $402
 
@@ -28,6 +31,10 @@ BRICO_EXT_OUTPUT_TYPE_WORD equ $1
 BRICO_EXT_OUTPUT_TYPE_STRING equ $2
 BRICO_EXT_OUTPUT_TYPE_DUMP equ $3
 
+; BricoNeo special flags
+BRICO_SPECIAL_FLAG_ENABLE_EXTENSIONS equ $0001		; Command extensions are active
+BRICO_SPECIAL_FLAG_68K_SENDS_COMMANDS equ $0002		; The 68k can send commands using the output port
+
 ; VRAM memory mapped registers
 REG_VRAMADD	equ $3C0000
 REG_VRAMRW	equ $3C0002
@@ -36,7 +43,8 @@ REG_VRAMMOD	equ $3C0004
 ; Inputs memory mapped registers
 REG_P1CNT_REG_DIPSW equ $300000
 REG_SYSTYPE equ $300080
-REG_SOUND_REG_STATUS_A equ $320000
+REG_SOUND equ $320000
+REG_STATUS_A equ $320001
 REG_P2CNT equ $340000
 REG_STATUS_B equ $380000
 
@@ -118,6 +126,7 @@ REG_STATUS_B equ $380000
 	.\@lbl0000PrintStart:
 		cmp.b #0,(a1)
 		beq .\@lbl0000PrintEnd
+		move.w #0,d0
 		move.b (a1)+,d0
 		InlinePortWriteD0
 		jmp .\@lbl0000PrintStart
