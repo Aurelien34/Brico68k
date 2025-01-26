@@ -31,6 +31,7 @@ EXT_TEST_VRAM:
     ; Prepare the loop on words
     move.w #0,d3
     move.w d6,d2
+
 .writeLoop
     WatchDog
     Nop4
@@ -44,6 +45,7 @@ EXT_TEST_VRAM:
     ; Prepare the loop on 16384 words of slow VRAM
     move.w #0,d3
     move.w d6,d2
+
 .readLoop
     WatchDog
     ; Set address to be read
@@ -60,12 +62,33 @@ EXT_TEST_VRAM:
     jmp .done
 
 .error:
+    WatchDog
+    PrintLn "=> Test failure"
+    ;PrintLn "Dump 3 words"
+
+    ;old method kept
     move.w d7,$100000
     move.w d1,$100002
     move.w d3,$100004
-	move.l #.lblErrorMessage,a1
+
+    Print "- Address where the error occurred : 0x"
+    move.l d7,d0
+    jsr printWord
+    move.l #.lblspace, a1
     PrintA1
+    Print "- Word read : 0x"
+    move.l d1,d0
+    jsr printWord
+    move.l #.lblspace, a1
+    PrintA1
+    Print "- Word expected : 0x"
+    move.l d3,d0
+    jsr printWord
     jmp .done
+
+
+.lblspace:
+	dc.b "",10,0
 
 .done
     ; End of transmission
@@ -73,10 +96,3 @@ EXT_TEST_VRAM:
 
     ; Jump back to the command loop
     jmp WAIT_FOR_COMMAND
-
-.lblErrorMessage:
-	dc.b "=> Test failure ", 10
-	dc.b "Dump 3 words @$100000", 10
-	dc.b "- Address where the error occurred", 10
-	dc.b "- Word read", 10
-	dc.b "- Word expected", 0
