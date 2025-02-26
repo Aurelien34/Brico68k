@@ -2,7 +2,7 @@
 
     global port_write_d0_JsrA6
     global print_a1_JsrA6
-    global printWord
+    global printWord_JsrA6
 
 	section	text
 
@@ -14,7 +14,7 @@ print_a1_JsrA6:			; string address in a1
     InlinePrintA1
     RtsA6
 
-printWord: 
+printWord_JsrA6: 
 ;input : d0 = 16-bit word - 0x8642 for example
 ;output : print a 4 digit hex value of d0
 ;d1 d7 d3 are used for vram test errors
@@ -33,20 +33,13 @@ printWord:
         blt.s .printChar
         addi.w #7, d0 ; convert to A-F
 
-        .printChar:
-            jsr PrintCharR
+    .printChar:
+        InlinePortWriteD0
 
         subi.l #4, d4 ; decrement counter by 4 bits
         bpl.s .hexloop ; continue loop if d4 >= 0
-
-    
-
      
-    rts
-    
-PrintCharR:
+    RtsA6
 
-    PortWriteD0
-    rts
 
 

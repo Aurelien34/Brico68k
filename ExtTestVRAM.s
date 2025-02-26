@@ -73,17 +73,17 @@ EXT_TEST_VRAM:
 
     Print "- Address where the error occurred : 0x"
     move.l d7,d0
-    jsr printWord
+    JsrA6 printWord
     move.l #.lblspace, a1
     PrintA1
     Print "- Word read : 0x"
     move.l d1,d0
-    jsr printWord
+    JsrA6 printWord
     move.l #.lblspace, a1
     PrintA1
     Print "- Word expected : 0x"
     move.l d3,d0
-    jsr printWord
+    JsrA6 printWord
     jmp .done
 
 
