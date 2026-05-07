@@ -69,6 +69,52 @@ START_TEST:
 	move.l #.lblTestSuccess,a1
     PrintA1
 
+	; Write all FFFF
+    Print "> FFFF Test "
+	move.l a5,a1
+.writeFFFFLoop:
+	WatchDog
+	move.w #$FFFF,(a1)+
+	cmp.l a4,a1
+	bne .writeFFFFLoop
+	WatchDog
+
+	; Check all FFFF
+	move.l a5,a1
+.readFFFFLoop:
+	WatchDog
+	move.w (a1)+,d1
+	cmp.w #$FFFF,d1
+	bne .reportResultError
+	cmp.l a4,a1
+	bne .readFFFFLoop
+	WatchDog
+	move.l #.lblTestSuccess,a1
+    PrintA1
+
+	; Write all AAAA
+    Print "> AAAA Test "
+	move.l a5,a1
+.writeAAAALoop:
+	WatchDog
+	move.w #$AAAA,(a1)+
+	cmp.l a4,a1
+	bne .writeAAAALoop
+	WatchDog
+
+	; Check all AAAA
+	move.l a5,a1
+.readAAAALoop:
+	WatchDog
+	move.w (a1)+,d1
+	cmp.w #$AAAA,d1
+	bne .reportResultError
+	cmp.l a4,a1
+	bne .readAAAALoop
+	WatchDog
+	move.l #.lblTestSuccess,a1
+    PrintA1
+
 	; Write all 5555
     Print "> 5555 Test "
 	move.l a5,a1
