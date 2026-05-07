@@ -81,11 +81,13 @@ EXTENSIONS_TABLE:
 	DECLARE_EXTENSION EXT_WRITE, 			BRICO_EXT_OUTPUT_TYPE_VOID,		"Write",			"Write word P1 at 68000 even address P2 (no WRAM used)"
 	DECLARE_EXTENSION EXT_MEMDUMP, 			BRICO_EXT_OUTPUT_TYPE_DUMP,		"Dump",				"Memory dump. Place start address in P1 and word count in P2 (no WRAM used)"
 	DECLARE_EXTENSION EXT_TEST_INPUTS,		BRICO_EXT_OUTPUT_TYPE_STRING,	"TestInp",			"Inputs tests, NEO-F0 / NEO-C1 (no WRAM used)"
-	DECLARE_EXTENSION EXT_TEST_WRAM,		BRICO_EXT_OUTPUT_TYPE_STRING,	"TestWRAM",			"Work RAM test. 0000, 5555 and increment tests. See mem dump $100000 (no WRAM used)"
-	DECLARE_EXTENSION EXT_TEST_BRAM,		BRICO_EXT_OUTPUT_TYPE_STRING,	"TestBRAM",			"Backup RAM test. 0000, 5555 and increment tests. See mem dump $D00000 (no WRAM used)"
-	DECLARE_EXTENSION EXT_TEST_PRAM,		BRICO_EXT_OUTPUT_TYPE_STRING,	"TestPRAM",			"Palette RAM test. 0000, 5555 and increment tests. See mem dump $400000 (no WRAM used)"
-	DECLARE_EXTENSION EXT_TEST_VRAM_LOWER,	BRICO_EXT_OUTPUT_TYPE_STRING,	"TestVRAML",		"Video RAM test (lower / slow RAM). (no WRAM used)"
-	DECLARE_EXTENSION EXT_TEST_VRAM_UPPER,	BRICO_EXT_OUTPUT_TYPE_STRING,	"TestVRAMU",		"Video RAM test (upper / fast RAM). (no WRAM used)"
+	DECLARE_EXTENSION EXT_TEST_WRAM,		BRICO_EXT_OUTPUT_TYPE_STRING,	"TestWRAM",			"Work RAM test. 0000, 5555, FFFF, AAAA and increment tests. See mem dump $100000 (no WRAM used)"
+	DECLARE_EXTENSION EXT_TEST_BRAM,		BRICO_EXT_OUTPUT_TYPE_STRING,	"TestBRAM",			"Backup RAM test. 0000, 5555, FFFF, AAAA and increment tests. See mem dump $D00000 (no WRAM used)"
+	DECLARE_EXTENSION EXT_TEST_PRAM,		BRICO_EXT_OUTPUT_TYPE_STRING,	"TestPRAM",			"Palette RAM test. 0000, 5555, FFFF, AAAA and increment tests. See mem dump $400000 (no WRAM used)"
+	DECLARE_EXTENSION EXT_TEST_VRAM_LOWER,		BRICO_EXT_OUTPUT_TYPE_STRING,	"TestVRAML",		"Video RAM test (lower / slow RAM). (no WRAM used)"
+	DECLARE_EXTENSION EXT_TEST_VRAM_UPPER,		BRICO_EXT_OUTPUT_TYPE_STRING,	"TestVRAMU",		"Video RAM test (upper / fast RAM). (no WRAM used)"
+	DECLARE_EXTENSION EXT_TEST_MARCH_VRAM_LOWER,	BRICO_EXT_OUTPUT_TYPE_STRING,	"MarchVRAML",		"March-C VRAM test (lower / slow RAM). (no WRAM used)"
+	DECLARE_EXTENSION EXT_TEST_MARCH_VRAM_UPPER,	BRICO_EXT_OUTPUT_TYPE_STRING,	"MarchVRAMU",		"March-C VRAM test (upper / fast RAM). (no WRAM used)"
 	dc.l $ffffffff ; No more extensions
 
 START:
