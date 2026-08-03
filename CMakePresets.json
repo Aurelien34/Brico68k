@@ -1,0 +1,34 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Default",
+            "binaryDir": "${sourceDir}/build"
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "build",
+            "displayName": "Build ROM",
+            "configurePreset": "default"
+        },
+        {
+            "name": "run",
+            "displayName": "Build + copy to mass storage (run)",
+            "configurePreset": "default",
+            "targets": ["run"]
+        },
+        {
+            "name": "store",
+            "displayName": "Build + copy to mass storage (BANK0/store)",
+            "configurePreset": "default",
+            "targets": ["store"]
+        }
+    ]
+}

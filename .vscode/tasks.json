@@ -1,0 +1,42 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "CMake Configure",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--preset", "local"],
+            "problemMatcher": []
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--build", "build"],
+            "dependsOn": "CMake Configure",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "BuildAndSend",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--build", "build", "--target", "run"],
+            "dependsOn": "CMake Configure",
+            "problemMatcher": []
+        },
+        {
+            "label": "BuildAndStore",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--build", "build", "--target", "store"],
+            "dependsOn": "CMake Configure",
+            "problemMatcher": []
+        }
+    ]
+}

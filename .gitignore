@@ -1,6 +1,7 @@
 
 Brico68k.code-workspace
 *.o
-*.txt
+/precomp/*.txt
 *.bin
-/.vscode
+/build
+CMakeUserPresets.json

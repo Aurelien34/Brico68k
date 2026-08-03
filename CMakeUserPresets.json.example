@@ -1,0 +1,15 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "local",
+            "displayName": "Local (with mass storage path)",
+            "inherits": "default",
+            "cacheVariables": {
+                "MASS_STORAGE_PATH": "D:/",
+                "VASM_ROOT": "C:/68kAssembly/68000DevTools/Utils/Vasm",
+                "VLINK_ROOT": "C:/68kAssembly/68000DevTools/Utils/Vasm"
+            }
+        }
+    ]
+}
