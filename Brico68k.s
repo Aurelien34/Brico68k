@@ -10,6 +10,7 @@
 ; Commande RESET RP2040>68000
 
 	include "inc/define.inc"
+	include "inc/trace.inc"
 
 	section vectors,data
 
@@ -22,6 +23,7 @@
 	dc.l	0
 	dc.l	0
 	dc.l	0
+	dc.l	TRACE
 	dc.l	0
 	dc.l	0
 	dc.l	0
@@ -38,8 +40,7 @@
 	dc.l	0
 	dc.l	0
 	dc.l	0
-	dc.l	0;VBLANK
-	dc.l	0;HBLANK
+	dc.l	0
 	dc.l	0
 	dc.l	0
 	dc.l	0
