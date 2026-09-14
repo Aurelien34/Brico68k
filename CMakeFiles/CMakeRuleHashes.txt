@@ -1,0 +1,18 @@
+# Hashes of file build rules.
+c25e50763e45aaf1459bcdf858865b84 CMakeFiles/rom
+23111f01931e1a01af0dc01f9bf2626c CMakeFiles/run
+e1443801cee72cb1b242280bbea9ad9c CMakeFiles/store
+d17e6b6efa75aa965f11b383a46c99c0 obj/Brico68k.o
+b96d2ab40a6feef9129afe4ef36d8e79 obj/ExtEcho.o
+4267442a33177bcdb1fa026f940bc290 obj/ExtMemDump.o
+f5c58e6d7bbaa8d09938da16059db353 obj/ExtRead.o
+e5577219790939a606d8cac24f175487 obj/ExtTestAudio.o
+318499e259680e20f8e7bc2e33ac119f obj/ExtTestBWPRAM.o
+3ec911c1c786484d165a71130c3b8c69 obj/ExtTestInputs.o
+e88b4e6b3e7bc179e1f5000104a1cdca obj/ExtTestLSPC.o
+7de30c595d99abc2d96d005c25d31ab2 obj/ExtTestMarchVram.o
+b3209538713b228efdbc22d853ad3ca1 obj/ExtTestVRAM.o
+f9ab10304a4c2dd5e09e57be0135bc83 obj/ExtWrite.o
+6d4e101bcc88863735d025ba5c999c74 obj/Tools.o
+8b566e40a2e8b144998e6cf62db8cf72 obj/Trace.o
+10d15498d250ae2a6d069f27085d0bbe rom/Brico68k.bin
