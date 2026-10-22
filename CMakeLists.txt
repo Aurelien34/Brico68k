@@ -71,29 +71,30 @@ add_custom_command(
 
 add_custom_target(rom ALL DEPENDS ${BIN_FILE})
 
-# --- Deployment to the external mass storage device ---------------------
-# The build itself never touches the mass storage device: only the "run"
-# and "store" targets do, and only when explicitly invoked.
-set(MASS_STORAGE_PATH "" CACHE PATH "Path to the external USB mass storage device the ROM is copied to")
+# --- Deployment to BricoNeo through its serial ports ----------------------
+# The build itself never touches BricoNeo: only the "run" and "store"
+# targets do, and only when explicitly invoked.
+set(ROM_UPLOAD_PORT "" CACHE STRING "BricoNeo ROM upload serial port (second port), e.g. COM4 or /dev/ttyACM1")
+set(CONSOLE_PORT "" CACHE STRING "BricoNeo console serial port (first port, only used by the store target), e.g. COM3 or /dev/ttyACM0")
 
 add_custom_target(run
     COMMAND ${CMAKE_COMMAND}
-        -DMASS_STORAGE_PATH=${MASS_STORAGE_PATH}
+        -DROM_UPLOAD_PORT=${ROM_UPLOAD_PORT}
         -DSRC_FILE=${BIN_FILE}
-        -DDEST_FILE=${MASS_STORAGE_PATH}/ROM.bio
-        -P ${CMAKE_SOURCE_DIR}/cmake/CopyToMassStorage.cmake
+        -P ${CMAKE_SOURCE_DIR}/cmake/SendToSerial.cmake
     DEPENDS ${BIN_FILE}
-    COMMENT "Copying ROM to the mass storage device (current ROM slot)"
+    COMMENT "Sending ROM to BricoNeo RAM through the ROM upload serial port"
     VERBATIM
 )
 
 add_custom_target(store
     COMMAND ${CMAKE_COMMAND}
-        -DMASS_STORAGE_PATH=${MASS_STORAGE_PATH}
+        -DROM_UPLOAD_PORT=${ROM_UPLOAD_PORT}
+        -DCONSOLE_PORT=${CONSOLE_PORT}
+        -DBANK=0
         -DSRC_FILE=${BIN_FILE}
-        -DDEST_FILE=${MASS_STORAGE_PATH}/BANK0/ROM.bio
-        -P ${CMAKE_SOURCE_DIR}/cmake/CopyToMassStorage.cmake
+        -P ${CMAKE_SOURCE_DIR}/cmake/SendToSerial.cmake
     DEPENDS ${BIN_FILE}
-    COMMENT "Copying ROM to the mass storage device (BANK0 slot)"
+    COMMENT "Sending ROM to BricoNeo through the ROM upload serial port and storing it in bank 0"
     VERBATIM
 )

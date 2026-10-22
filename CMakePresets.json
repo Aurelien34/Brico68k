@@ -20,13 +20,13 @@
         },
         {
             "name": "run",
-            "displayName": "Build + copy to mass storage (run)",
+            "displayName": "Build + send to BricoNeo RAM (run)",
             "configurePreset": "default",
             "targets": ["run"]
         },
         {
             "name": "store",
-            "displayName": "Build + copy to mass storage (BANK0/store)",
+            "displayName": "Build + send to BricoNeo and store in bank 0 (store)",
             "configurePreset": "default",
             "targets": ["store"]
         }

@@ -60,7 +60,7 @@
 	; Magic word - 8 bytes
 	dc.b "BricoNeo"
 	; Version - 4 bytes
-	BRICONEO_VERSION 1,98
+	BRICONEO_VERSION 1,34
 	; Special modes
 	dc.w BRICO_SPECIAL_FLAG_ENABLE_EXTENSIONS + BRICO_SPECIAL_FLAG_68K_SENDS_COMMANDS
 

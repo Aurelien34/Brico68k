@@ -3,10 +3,11 @@
     "configurePresets": [
         {
             "name": "local",
-            "displayName": "Local (with mass storage path)",
+            "displayName": "Local (with BricoNeo serial ports)",
             "inherits": "default",
             "cacheVariables": {
-                "MASS_STORAGE_PATH": "D:/",
+                "ROM_UPLOAD_PORT": "COM4",
+                "CONSOLE_PORT": "COM3",
                 "VASM_ROOT": "C:/68kAssembly/68000DevTools/Utils/Vasm",
                 "VLINK_ROOT": "C:/68kAssembly/68000DevTools/Utils/Vasm"
             }
