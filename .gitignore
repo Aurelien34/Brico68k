@@ -5,3 +5,15 @@ Brico68k.code-workspace
 *.bin
 /build
 CMakeUserPresets.json
+
+# In-source CMake build artifacts (always build in /build)
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+build.ninja
+.ninja_*
+
+# OS / personal editor files
+.DS_Store
+.vscode/mcp.json
