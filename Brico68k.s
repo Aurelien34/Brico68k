@@ -92,7 +92,7 @@ EXTENSIONS_TABLE:
 	DECLARE_EXTENSION EXT_TEST_MARCH_VRAM_LOWER,	BRICO_EXT_OUTPUT_TYPE_STRING,	"MarchVRAML",		"March-C VRAM test (lower / slow RAM). (no WRAM used)"
 	DECLARE_EXTENSION EXT_TEST_MARCH_VRAM_UPPER,	BRICO_EXT_OUTPUT_TYPE_STRING,	"MarchVRAMU",		"March-C VRAM test (upper / fast RAM). (no WRAM used)"
 	DECLARE_EXTENSION EXT_TEST_LSPC,		BRICO_EXT_OUTPUT_TYPE_STRING,	"TestLSPC",			"LSPC2-A2 chip test: VRAMMOD write/readback, VRAMADD+VRAMRW round-trip, VRAM auto-inc. (no WRAM used)"
-	DECLARE_EXTENSION EXT_COLOR,			BRICO_EXT_OUTPUT_TYPE_VOID,		"Color",			"Fill the screen using only palette RAM with the given color value, in NeoGeo color format. Red is $CF00, Green is $20F0, Blue is $900F, White is $7FFF. (no WRAM used)"
+	DECLARE_EXTENSION EXT_COLOR,			BRICO_EXT_OUTPUT_TYPE_VOID,		"Color",			"Fill the screen using only palette RAM with the given color value, in NeoGeo color format. Red is $CF00, Green is $20F0, Blue is $900F, White is $7FFF, Black is $8000. (no WRAM used)"
 	dc.l $ffffffff ; No more extensions
 
 START:
