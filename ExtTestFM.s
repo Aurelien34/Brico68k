@@ -1,16 +1,16 @@
 	include "inc/define.inc"
 
-    global EXT_EYE_SND
+    global EXT_TEST_FM
 
 	section	text
 
-EXT_EYE_SND:
+EXT_TEST_FM:
 
     ; Reset the audio hardware
     reset
     JsrA6 wait_for_z80
     
-    ; Send the eyecatcher command
+    ; Send the eyecatcher command (Uses FM1-FM4)
     move.b #$2, REG_SOUND
     JsrA6 wait_for_z80
 
