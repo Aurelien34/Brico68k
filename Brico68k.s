@@ -85,8 +85,8 @@ EXTENSIONS_TABLE:
 	DECLARE_EXTENSION EXT_TEST_INPUTS,		BRICO_EXT_OUTPUT_TYPE_STRING,	"TestInp",			"Inputs tests, NEO-F0 / NEO-C1 (no WRAM used)"
 	DECLARE_EXTENSION EXT_TEST_AUDIO,		BRICO_EXT_OUTPUT_TYPE_STRING,	"TestAudio",			"Audio test. Emits left, right then center beep tones on the Neo-Geo audio output. Uses channel FM1"
 
-	DECLARE_EXTENSION EXT_TEST_FM,			BRICO_EXT_OUTPUT_TYPE_VOID,		"TestFM",			"Plays the eyecatcher music from the SM1 ROM. Uses channels FM1, FM2, FM3 and FM4"
-	DECLARE_EXTENSION EXT_TEST_SSG,			BRICO_EXT_OUTPUT_TYPE_VOID,		"TestSsg",			"Plays the chime sound (coin insertion) from the SM1 ROM. Uses timer A and channels SSGA, SSGB, SSGCC and noise"
+	DECLARE_EXTENSION EXT_TEST_FM,			BRICO_EXT_OUTPUT_TYPE_VOID,		"TestFM",			"Plays the eyecatcher music from the SM1 ROM. Uses channels FM1, FM2, FM3 and FM4 (no WRAM used)"
+	DECLARE_EXTENSION EXT_TEST_SSG,			BRICO_EXT_OUTPUT_TYPE_VOID,		"TestSsg",			"Plays the chime sound (coin insertion) from the SM1 ROM. Uses timer A and channels SSGA, SSGB, SSGCC and noise (no WRAM used)"
 	DECLARE_EXTENSION EXT_TEST_WRAM,		BRICO_EXT_OUTPUT_TYPE_STRING,	"TestWRAM",			"Work RAM test. 0000, 5555, FFFF, AAAA and increment tests. See mem dump $100000 (no WRAM used)"
 	DECLARE_EXTENSION EXT_TEST_BRAM,		BRICO_EXT_OUTPUT_TYPE_STRING,	"TestBRAM",			"Backup RAM test. 0000, 5555, FFFF, AAAA and increment tests. See mem dump $D00000 (no WRAM used)"
 	DECLARE_EXTENSION EXT_TEST_PRAM,		BRICO_EXT_OUTPUT_TYPE_STRING,	"TestPRAM",			"Palette RAM test. 0000, 5555, FFFF, AAAA and increment tests. See mem dump $400000 (no WRAM used)"
