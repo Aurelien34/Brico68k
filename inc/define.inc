@@ -49,6 +49,14 @@ REG_STATUS_A equ $320001
 REG_P2CNT equ $340000
 REG_STATUS_B equ $380000
 
+	; ROM version, normally given on the command line by CMake (-DVERSION_MAJOR / -DVERSION_MINOR)
+	ifnd VERSION_MAJOR
+VERSION_MAJOR equ 0
+	endif
+	ifnd VERSION_MINOR
+VERSION_MINOR equ 0
+	endif
+
 	macro BRICONEO_VERSION
 		dc.w \1	; Major
 		dc.w \2	; Minor
