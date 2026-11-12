@@ -34,14 +34,48 @@ if(NOT VLINK_EXECUTABLE)
     )
 endif()
 
-# --- Assemble & link ----------------------------------------------------
-set(ASFLAGS -chklabels -nocase -Fvobj -m68000 -Dvasm=1 -DBuildNEO=1 -I${CMAKE_SOURCE_DIR}/inc -spaces -quiet)
-set(LDFLAGS -brawbin1 -T${CMAKE_SOURCE_DIR}/${TARGET_NAME}.ld)
-
 set(OBJ_DIR ${CMAKE_BINARY_DIR}/obj)
 set(PRECOMP_DIR ${CMAKE_BINARY_DIR}/precomp)
 set(ROM_DIR ${CMAKE_BINARY_DIR}/rom)
 file(MAKE_DIRECTORY ${OBJ_DIR} ${PRECOMP_DIR} ${ROM_DIR})
+
+# --- ROM version ----------------------------------------------------------
+# By default, the ROM gets the number of the next release: the highest
+# vMAJOR.MINOR git tag, with MINOR + 1 (v1.34 -> 1.35). It is computed at
+# configure time, so re-run the configure step after fetching new tags.
+# Both values can be forced with -DVERSION_MAJOR=<n> -DVERSION_MINOR=<n>.
+set(VERSION_MAJOR "" CACHE STRING "Forced ROM major version (empty = computed from git tags)")
+set(VERSION_MINOR "" CACHE STRING "Forced ROM minor version (empty = computed from git tags)")
+
+if(NOT VERSION_MAJOR STREQUAL "" AND NOT VERSION_MINOR STREQUAL "")
+    set(ROM_VERSION_MAJOR ${VERSION_MAJOR})
+    set(ROM_VERSION_MINOR ${VERSION_MINOR})
+else()
+    set(ROM_VERSION_MAJOR 0)
+    set(ROM_VERSION_MINOR 0)
+    find_package(Git QUIET)
+    if(GIT_FOUND)
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} tag --list "v*" --sort=-v:refname
+            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            OUTPUT_VARIABLE GIT_TAGS
+            ERROR_QUIET
+        )
+        if(GIT_TAGS MATCHES "^v([0-9]+)\\.([0-9]+)")
+            set(ROM_VERSION_MAJOR ${CMAKE_MATCH_1})
+            math(EXPR ROM_VERSION_MINOR "${CMAKE_MATCH_2} + 1")
+        endif()
+    endif()
+endif()
+message(STATUS "ROM version: ${ROM_VERSION_MAJOR}.${ROM_VERSION_MINOR}")
+# Read by the GitHub workflow to name the release
+file(WRITE ${ROM_DIR}/version.txt "${ROM_VERSION_MAJOR}.${ROM_VERSION_MINOR}\n")
+
+# --- Assemble & link ----------------------------------------------------
+set(ASFLAGS -chklabels -nocase -Fvobj -m68000 -Dvasm=1 -DBuildNEO=1
+    -DVERSION_MAJOR=${ROM_VERSION_MAJOR} -DVERSION_MINOR=${ROM_VERSION_MINOR}
+    -I${CMAKE_SOURCE_DIR}/inc -spaces -quiet)
+set(LDFLAGS -brawbin1 -T${CMAKE_SOURCE_DIR}/${TARGET_NAME}.ld)
 
 file(GLOB ASM_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/*.s)
 set(INC_FILE ${CMAKE_SOURCE_DIR}/inc/define.inc)

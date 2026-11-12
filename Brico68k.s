@@ -59,8 +59,8 @@
 
 	; Magic word - 8 bytes
 	dc.b "BricoNeo"
-	; Version - 4 bytes
-	BRICONEO_VERSION 1,35
+	; Version - 4 bytes. Injected at build time by CMake (next release number, from the git tags)
+	BRICONEO_VERSION VERSION_MAJOR,VERSION_MINOR
 	; Special modes
 	dc.w BRICO_SPECIAL_FLAG_ENABLE_EXTENSIONS + BRICO_SPECIAL_FLAG_68K_SENDS_COMMANDS
 

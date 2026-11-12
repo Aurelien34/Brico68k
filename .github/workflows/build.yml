@@ -1,0 +1,102 @@
+name: Build & Release
+
+# - Pull request to main: assemble the ROM only. The "Build ROM" job is the
+#   required status check of the main branch ruleset, so a PR that does not
+#   build cannot be merged.
+# - Push to main (i.e. a merged PR): assemble the ROM, then publish it as a
+#   GitHub release tagged vMAJOR.MINOR (previous tag + 1 on MINOR).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Releases are serialized so two pushes never get the same version number.
+# PR builds of the same branch cancel each other.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && 'release' || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # vasm 2.0f (sun.hasenbraten.de is not reliably reachable, use a pinned mirror commit)
+  VASM_REPO: StarWolf3000/vasm-mirror
+  VASM_SHA: a13e7e728a3dd5a9ba468bf479119e0bc23e70fd
+  # vlink 0.17a
+  VLINK_REPO: Leffmann/vlink
+  VLINK_SHA: d78459de313df5fd850f4c240aad8b00b65526ac
+
+jobs:
+  build:
+    name: Build ROM
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the version is computed from the git tags
+
+      - name: Cache vasm / vlink
+        id: tools-cache
+        uses: actions/cache@v4
+        with:
+          path: tools
+          key: tools-${{ runner.os }}-${{ env.VASM_SHA }}-${{ env.VLINK_SHA }}
+
+      - name: Build vasm / vlink
+        if: steps.tools-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p tools src/vasm src/vlink
+          curl -fsSL "https://github.com/$VASM_REPO/archive/$VASM_SHA.tar.gz"   | tar xz -C src/vasm  --strip-components=1
+          curl -fsSL "https://github.com/$VLINK_REPO/archive/$VLINK_SHA.tar.gz" | tar xz -C src/vlink --strip-components=1
+          make -C src/vasm CPU=m68k SYNTAX=mot -j"$(nproc)"
+          mkdir -p src/vlink/objects
+          make -C src/vlink -j"$(nproc)"
+          cp src/vasm/vasmm68k_mot src/vlink/vlink tools/
+
+      - name: Add tools to PATH
+        run: echo "$GITHUB_WORKSPACE/tools" >> "$GITHUB_PATH"
+
+      - name: Configure
+        run: cmake --preset default
+
+      - name: Build ROM
+        run: cmake --build --preset build
+
+      - name: Read version
+        id: version
+        run: |
+          version=$(tr -d '[:space:]' < build/rom/version.txt)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "ROM version: $version" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Brico68k-v${{ steps.version.outputs.version }}
+          path: build/rom/Brico68k.bin
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # create the tag and the release
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: Brico68k-v${{ needs.build.outputs.version }}
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: v${{ needs.build.outputs.version }}
+        run: |
+          gh release create "$TAG" Brico68k.bin \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Brico68k $TAG" \
+            --generate-notes
