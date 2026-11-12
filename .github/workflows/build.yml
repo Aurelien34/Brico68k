@@ -34,13 +34,13 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # the version is computed from the git tags
 
       - name: Cache vasm / vlink
         id: tools-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: tools
           key: tools-${{ runner.os }}-${{ env.VASM_SHA }}-${{ env.VLINK_SHA }}
@@ -72,7 +72,7 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "ROM version: $version" >> "$GITHUB_STEP_SUMMARY"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: Brico68k-v${{ steps.version.outputs.version }}
           path: build/rom/Brico68k.bin
@@ -86,7 +86,7 @@ jobs:
     permissions:
       contents: write # create the tag and the release
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: Brico68k-v${{ needs.build.outputs.version }}
 
