@@ -78,7 +78,8 @@ set(ASFLAGS -chklabels -nocase -Fvobj -m68000 -Dvasm=1 -DBuildNEO=1
 set(LDFLAGS -brawbin1 -T${CMAKE_SOURCE_DIR}/${TARGET_NAME}.ld)
 
 file(GLOB ASM_SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/*.s)
-set(INC_FILE ${CMAKE_SOURCE_DIR}/inc/define.inc)
+# Every object depends on all the include files (define.inc, trace.inc...)
+file(GLOB INC_FILE CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/inc/*.inc)
 
 set(OBJ_FILES "")
 foreach(src ${ASM_SOURCES})
@@ -132,3 +133,41 @@ add_custom_target(store
     COMMENT "Sending ROM to BricoNeo through the ROM upload serial port and storing it in bank 0"
     VERBATIM
 )
+
+# --- Trace handler as a C++ header ----------------------------------------
+# Assembles Trace.s alone (raw binary, no linking) and converts it to
+# build/TraceRoutine.h for the Brico16Bits firmware (BIOS live patch).
+# Part of ALL, so that the header always follows Trace.s; it can also be
+# built alone with "cmake --build <dir> --target trace_routine".
+# The header is only produced here: copying it into Brico16Bits
+# (Commands/TraceRoutine.h) is a manual step.
+
+set(TRACE_SRC ${CMAKE_SOURCE_DIR}/Trace.s)
+set(TRACE_BIN ${CMAKE_BINARY_DIR}/TraceRoutine.bin)
+set(TRACE_HEADER ${CMAKE_BINARY_DIR}/TraceRoutine.h)
+
+set(ASFLAGS_BIN ${ASFLAGS})
+list(REMOVE_ITEM ASFLAGS_BIN -Fvobj)
+list(APPEND ASFLAGS_BIN -Fbin)
+
+file(GLOB TRACE_INC_FILES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/inc/*.inc)
+
+add_custom_command(
+    OUTPUT ${TRACE_BIN}
+    COMMAND ${VASM_EXECUTABLE} ${ASFLAGS_BIN} -L ${PRECOMP_DIR}/TraceRoutine.s.txt -o ${TRACE_BIN} ${TRACE_SRC}
+    DEPENDS ${TRACE_SRC} ${INC_FILE} ${TRACE_INC_FILES}
+    COMMENT "Assembling Trace.s as a raw binary"
+    VERBATIM
+)
+add_custom_command(
+    OUTPUT ${TRACE_HEADER}
+    COMMAND ${CMAKE_COMMAND}
+        -DSRC_FILE=${TRACE_BIN}
+        -DDST_FILE=${TRACE_HEADER}
+        -P ${CMAKE_SOURCE_DIR}/cmake/BinToHeader.cmake
+    DEPENDS ${TRACE_BIN} ${CMAKE_SOURCE_DIR}/cmake/BinToHeader.cmake
+    COMMENT "Generating TraceRoutine.h"
+    VERBATIM
+)
+
+add_custom_target(trace_routine ALL DEPENDS ${TRACE_HEADER})
