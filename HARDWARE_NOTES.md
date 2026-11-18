@@ -402,3 +402,117 @@ chargé depuis une carte SD/stockage de masse exposée par le contrôleur hôte.
   sources assembleur, qui sont a priori strictement équivalentes au binaire
   produit par le Makefile) — à recouper avec un désassemblage si une
   divergence source/binaire est suspectée.
+
+---
+
+## 6. Protocole debugger v2 (commande `Dbg` de Brico16Bits)
+
+Protocole entre le handler TRACE [`Trace.s`](Trace.s) (ce dépôt) et la commande `Dbg` du firmware Brico16Bits (`Commands/CommandDebug.cpp`, `Commands/DebugLink.cpp`). Les constantes sont définies dans [`inc/trace.inc`](inc/trace.inc) (asm) et dans `Brico16Bits/Commands/DebugProtocol.h` (C++) : **les valeurs doivent rester identiques dans les deux fichiers**. Ce protocole remplace le format v1 (trame de 59 mots), qui n'est plus reconnu.
+
+Le plan de développement (historique) est dans `Brico16Bits/Docs/DEBUGGER_V2_PLAN.md`.
+
+### 6.1 Deux modes d'utilisation du même `Trace.s`
+
+| Mode | Comment le handler arrive en mémoire | Ce que fait `Dbg` |
+|---|---|---|
+| **A. BIOS standard** (+ jeu cartouche) | Code de `Trace.s` assemblé seul (cible `trace_routine`), copié à `$C04200`, appelé via un `jmp` patché en `$0420` | Si le vecteur TRACE du BIOS pointe vers `$C00420`, patche le BIOS puis reset ; sinon « ROM non conventionnelle » : pas de patch, reset seulement |
+| **B. ROM Brico68k** | `Trace.s` est lié dans la ROM ; le vecteur TRACE (`dc.l TRACE`) pointe dessus | Ne patche rien, reset seulement |
+
+Contraintes communes :
+- `Trace.s` s'assemble **à l'identique** dans les deux cas : aucun symbole externe, seulement des `include` de `inc/` qui ne définissent aucun label.
+- Taille ≤ `BIOS_PATCH_TRACE_ROUTINE_MAX_BYTES` (vérifié par `fail` à la fin de `Trace.s` et par un `static_assert` côté Pico). Handler actuel : 252 octets (`TRACE_ROUTINE_SIZE_BYTES` dans `TraceRoutine.h`).
+- En mode B, le code tracé utilise lui-même les ports BricoExt : des mots et des EOT parasites peuvent arriver entre deux arrêts (voir 6.6).
+
+### 6.2 Patch du BIOS
+
+| Constante | Valeur | Note |
+|---|---|---|
+| `BIOS_PATCH_TRACE_ROUTINE_OFFSET` | `$4200` | Offset dans l'image ROM système, soit `$C04200` côté 68k |
+| `BIOS_PATCH_TRACE_ROUTINE_MAX_BYTES` | `$100` | Mode A seulement. La zone (table aléatoire du BIOS SNK) est déjà écrasée par la v1 |
+
+### 6.3 Boîte aux lettres Pico → 68k
+
+Offsets dans l'image ROM système du Pico ; le 68k lit à `$C00000 + offset`. Mots et longs sont vus par le 68k en big-endian (un long = mot de poids fort à l'offset le plus bas).
+
+| Offset | Adresse 68k | Taille | Rôle |
+|---|---|---|---|
+| `$1FFF0` | `$C1FFF0` | long | ARG0 : adresse (READ_MEM, WRITE_MEM) / PC cible (RUN_UNTIL) |
+| `$1FFF4` | `$C1FFF4` | long | ARG1 : nombre de mots (READ_MEM) / SP minimal (RUN_UNTIL) / valeur et taille (WRITE_MEM) |
+| `$1FFF8` | `$C1FFF8` | word | BREAK : non nul = arrêter au prochain passage dans le handler |
+| `$1FFFC` | `$C1FFFC` | word | CMD : code de commande |
+| `$1FFFE` | `$C1FFFE` | word | CTR : compteur de requête, **écrit en dernier** par le Pico |
+
+`$1FFFA` est réservé (BricoExt / CommandManager), il ne faut pas l'utiliser.
+
+### 6.4 Commandes
+
+| Code | Nom | Arguments | Effet côté 68k |
+|---|---|---|---|
+| 0 | `STEP` | — | Restaure l'état, `rte` (T reste à 1) |
+| 1 | `CONTINUE` | — | Met T à 0 dans le SR empilé, `rte` |
+| 2 | `GET_REGS` | — | Envoie la réponse registres + EOT, reste dans la boucle |
+| 3 | `READ_MEM` | ARG0 = adresse paire, ARG1 = 1 à 256 mots | Envoie les mots + EOT, reste dans la boucle |
+| 4 | `RUN_UNTIL` | ARG0 = PC cible, ARG1 = SP minimal | `rte` avec T à 1 ; les passages suivants prennent la voie rapide (6.5) |
+| 5 | `WRITE_MEM` | ARG0 = adresse, ARG1 = valeur (bits 0-15) ; bit 31 de ARG1 (`DEBUG_WRITE_MEM_WORD`) à 1 = mot, à 0 = octet | `move.w` ou `move.b` de la valeur à l'adresse, EOT, reste dans la boucle |
+
+Un code inconnu est traité comme `STEP`. Une requête READ_MEM invalide (adresse impaire, nombre hors de 1..256) ne touche à aucune mémoire : le 68k n'envoie que l'EOT. Le Pico ne l'envoie jamais, il refuse avant.
+
+WRITE_MEM n'est contrôlé que côté Pico (`DebugLink::WriteMemory`) : le 68k écrit sans vérifier. Le Pico refuse une adresse au-delà de `$FFFFFF`, un mot à adresse impaire (erreur d'adresse sur le 68000), les ports BricoExt et leurs miroirs, la zone `$300000-$3FFFFF` sans confirmation explicite (`force`), et la pile du handler `[SSP-66, SSP)` (cadre d'exception et registres sauvés par le handler : y écrire modifierait l'état restauré à la reprise). SSP est celui du dernier GET_REGS de l'arrêt courant. Un octet est écrit avec un vrai `move.b` (pas de lecture-modification-écriture d'un mot), ce qui compte pour les registres matériels.
+
+Taille du handler avec WRITE_MEM : 252 octets sur les 256 autorisés en mode A.
+
+`DEBUG_PROTOCOL_MAGIC` = `$DB02`.
+
+### 6.5 Trames et voie rapide
+
+**Trame d'arrêt** (68k vers Pico) : 5 mots puis EOT : `MAGIC`, `SR`, `PC` (poids fort), `PC` (poids faible), `CTR` (valeur lue dans la boîte aux lettres à l'entrée).
+
+**Réponse GET_REGS** (68k vers Pico) : 37 mots puis EOT.
+
+| Mots | Contenu |
+|---|---|
+| 0-15 | d0 à d7 (2 mots chacun, poids fort d'abord) |
+| 16-29 | a0 à a6 (2 mots chacun) |
+| 30-31 | SSP avant l'exception (= adresse du cadre d'exception + 6) |
+| 32-33 | USP |
+| 34 | SR |
+| 35-36 | PC |
+
+a7 affiché = `SR.S ? SSP_INTERRUPTED : USP`.
+
+**Voie rapide RUN_UNTIL** : au tout début du handler, après le watchdog et avant toute sauvegarde. Elle s'applique si CMD = RUN_UNTIL et BREAK = 0, et si le PC empilé n'est pas ARG0 ou si SSP_INTERRUPTED est inférieur à ARG1 (comparaison non signée). Le handler restaure alors d0 et fait `rte` (T reste à 1). Sinon il prend le chemin complet : trame d'arrêt puis boucle de commandes.
+- Aucun registre du code tracé n'est modifié. Les flags peuvent changer : le CCR du code tracé est dans le SR empilé, qui n'est pas touché sur ce chemin.
+- BREAK n'est examiné que par la voie rapide. Hors RUN_UNTIL, chaque entrée dans le handler est déjà un arrêt.
+- Usages côté Pico : step over = `RUN_UNTIL(PC + taille, SSP courant)` pour un appel, un trap ou un DBcc ; step out = `RUN_UNTIL(adresse de retour, adresse du cadre + 4)` ; `g` = `RUN_UNTIL(adresse, 0)`.
+
+### 6.6 Poignée de main et resynchronisation
+
+Poignée de main :
+1. Le 68k envoie la trame d'arrêt + EOT et garde `ctr` (valeur envoyée).
+2. Pour chaque requête, le Pico écrit ARG0, ARG1, BREAK = 0, CMD, puis **CTR = ctr + 1 en dernier**, et attend l'EOT (timeout de 1 s par défaut). Il lit exactement le nombre de mots attendu.
+3. Le 68k boucle (en servant le watchdog) tant que `CTR == ctr`, lit CMD, exécute, met `ctr = CTR`, puis reboucle ou reprend.
+4. Avant chaque requête, le Pico vide le tampon d'entrée : le 68k est bloqué dans le handler, rien d'autre ne peut arriver.
+5. Au lancement de `Dbg`, avant le reset : ARG0 = 0, ARG1 = 0, BREAK = 0, CMD = CONTINUE, puis CTR = 0. CMD = CONTINUE est écrit avant CTR : un ancien handler réveillé reprend sans trace et n'envoie pas de trame.
+
+Resynchronisation côté Pico (`DebugLink::WaitStop`) :
+- Les mots reçus sont gardés dans une fenêtre glissante de 5 mots, évaluée à chaque EOT. Elle n'est vidée que lorsqu'une trame est acceptée.
+- Une trame est acceptée si la fenêtre commence par `MAGIC`, si son CTR est celui de la dernière requête, et si le PC est pair. Le Pico attend alors l'EOT de la trame (200 µs au plus) puis vide le tampon.
+- Sinon, l'EOT est **ignoré sans erreur** (EOT émis par le code tracé en mode B).
+- Un EOT précédé de 5 mots ou plus sans `MAGIC` est compté comme trame non reconnue. Un message non bloquant n'est affiché que pour une trame de 59 mots (handler v1), et jamais avec une ROM Brico68k / BricoNeo, dont le code tracé envoie légitimement des trames BricoExt de toute longueur.
+- Les réponses aux requêtes ne sont pas concernées : leur longueur est connue, et le code tracé ne tourne pas pendant que le 68k attend une commande.
+
+### 6.7 Contraintes du handler 68k
+
+- **Position-indépendant** : relogé à `$C04200` en mode A, à son adresse de lien en mode B. Uniquement des `bsr`/`bra` relatifs. Adresses absolues permises seulement pour les ports `$C1FFxx` (boîte aux lettres, BricoExt), `$C2xxxx` (fenêtre de valeurs) et `$300001` (watchdog).
+- **Autonome** : aucun label défini ailleurs dans Brico68k. Constantes préfixées `TRACE_` / `DEBUG_`, pour éviter les collisions avec `inc/define.inc`.
+- **Pas de RAM** en dehors de la pile.
+- **Watchdog** (`move.b d0,$300001`) servi dans toutes les boucles d'attente et dans la voie rapide.
+- **Registres** : tous ceux du code tracé sont restaurés à l'identique (`movem` sur le chemin complet, d0 seul sur la voie rapide). Les interruptions sont masquées dans le SR du handler seulement (`ori.w #$0700,sr`) : le SR du code tracé est celui de la pile, restauré par `rte`.
+
+### 6.8 Contrainte du bus watcher (lecture des ports)
+
+Extrait de `inc/trace.inc` :
+- Après une lecture de `TRACE_PORT_OUT` (`$C1FF02`), le Pico capture comme valeur l'adresse du 2e accès suivant en ROM système (`$Cxxxxx`).
+- La lecture du port est un `move.w <ea>,Dn` qui se termine par `nr np` : la valeur doit donc être le **premier** accès de l'instruction suivante. On calcule `lea <adresse de la valeur>,An` **avant** la lecture du port, puis on lit `move.w (An),Dn` (ou `(An)+`, `-(An)`).
+- Jamais `d16(An)`, `(d8,An,Xn)`, `abs.w` ni `abs.l` pour la lecture de la valeur : ils insèrent un `np` et la mauvaise adresse est capturée.
+- Le code doit s'exécuter depuis la ROM système (vrai en modes A et B), et rien ne doit lire `TRACE_PORT_EOT` dans les 2 accès ROM qui suivent une lecture de port.
